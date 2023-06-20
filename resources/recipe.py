@@ -19,15 +19,14 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 # 테이블과 다른점 : 함수가 있다
 
 ## API를 만들기 위해서는
-## flask_restful 라이브러리의 Resource 클래스를
-## 상속해서 만들어야 한다.
+## flask_restful 라이브러리의 Resource 클래스를 상속해서 만들어야 한다.
 ## 파이썬에서 상속은 괄호!
 
 
 # 틀 : class 클래스이름(상속받을것)
 
 
-class RecipeListResource(Resource) :
+class RecipeListResource(Resource) : ## 레시피등록, 가져오기
 
     
     @jwt_required()
@@ -232,9 +231,12 @@ class RecipeListResource(Resource) :
 
 
 
+
+
+
 # ===================================================================
 
-class RecipeRecource(Resource) :
+class RecipeRecource(Resource) : ## 특정레시피가져오기, 수정하기
 
     ### GET 메소드에서, 경로로 넘어오는 변수는 get함수의 파라미터로 사용한다
     # def get(self, recipe_id)
@@ -415,6 +417,148 @@ class RecipeRecource(Resource) :
         ### 3. 결과를 응답한다
         
         return {'result' : 'success'}
+
+
+
+
+
+
+
+
+
+# ===================================================================
+
+class RecipePublishResource(Resource) : ###### 레시피공개, 임시저장하는API
+
+    @jwt_required()
+    def put(self, recipe_id): # recipe_id 는 경로
+        
+        ### 1. 클라이언트로부터 데이터 받아오기
+        user_id = get_jwt_identity()   
+        # 여기까지 레시피아이디와 유저 아이디 다 받아옴
+
+        ### 2. DB 처리
+        try :
+            connection = get_connection()
+            #update recipe
+            # set is_publish = 1
+            # where id = 4 and user_id = 2;
+            query = '''update recipe
+                        set is_publish = 1
+                        where id = %s and user_id = %s;'''
+            record = (recipe_id, user_id)
+            cursor = connection.cursor()
+            cursor.execute(query, record)
+            connection.commit()
+            cursor.close()
+            connection.close()
+
+
+        except Error as e:
+            print('오류', e)
+            return {'result':'fail', 'error' : str(e)}, 500
+        
+
+        return { 'result' : 'success'}
+    
+
+
+
+    @jwt_required()  # recipe_id이거 무조건 있어야 오류 안남. 레시피아이디쓰는 리소스니까
+    def delete(self, recipe_id):
+
+
+        ### 1. 클라이언트로부터 데이터 받아오기
+        user_id = get_jwt_identity()   
+        # 여기까지 레시피아이디와 유저 아이디 다 받아옴
+
+        ### 2. DB 처리
+        try :
+            connection = get_connection()
+            #update recipe
+            # set is_publish = 1
+            # where id = 4 and user_id = 2;
+            query = '''update recipe
+                        set is_publish = 0
+                        where id = %s and user_id = %s;'''
+            record = (recipe_id, user_id)
+            cursor = connection.cursor()
+            cursor.execute(query, record)
+            connection.commit()
+            cursor.close()
+            connection.close()
+
+
+        except Error as e:
+            print('오류', e)
+            return {'result':'fail', 'error' : str(e)}, 500
+        
+
+        return { 'result' : 'success'}
+    
+
+
+
+
+
+
+
+
+
+# ===================================================================
+
+class MyRecipeListResource(Resource) : ## 내 레시피 리스트만 가져오기
+
+
+    @jwt_required()
+    def get(self) :
+        
+        ### 1.
+        user_id = get_jwt_identity()
+
+        ### 2. 
+        try :
+            connection = get_connection() # DB연결
+            # select *
+            # from recipe
+            # where user_id = 2;
+            query = '''select *
+                    from recipe
+                    where user_id = %s;'''
+            record = (user_id, )
+            cursor = connection.cursor(dictionary=True) # 파이썬 딕셔너리형태로 가져와라 -> 제이슨이니까
+            cursor.execute(query, record)
+
+            result_list = cursor.fetchall()
+
+            cursor.close()
+            connection.close()
+
+        except Error as e :
+            print('오류2', e)
+            return {'result':'fail', 'error':str(e)}, 500
+            
+        print('결과리스트', result_list)
+
+
+        # 날짜 형식 오류나니까 오류 안나게 형식 바꾸기
+        i = 0
+        for row in result_list :
+            # print(row) # 서버 내렸다가 다시 돌리고 포스트맨에서 send눌러봄 -> row는 딕셔너리
+            result_list[i]['created_at'] = row['created_at'].isoformat()
+            result_list[i]['updated_at'] = row['updated_at'].isoformat()
+            i = i + 1
+
+
+        return {'result' : 'success', 
+                'count' : len(result_list),
+                'items' : result_list}
+    
+
+
+
+
+
 
 
 

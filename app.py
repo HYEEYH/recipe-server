@@ -14,7 +14,7 @@
 # 라이브러리 임포트 -------
 from flask import Flask
 from flask_restful import Api
-from resources.recipe import RecipeListResource, RecipeRecource
+from resources.recipe import MyRecipeListResource, RecipeListResource, RecipePublishResource, RecipeRecource
 from resources.user import UserLoginResource, UserLogoutResource, UserRegisterResource, jwt_blocklist
 from flask_jwt_extended import JWTManager
 
@@ -58,8 +58,12 @@ api.add_resource( UserRegisterResource  , '/user/register')
         # 클래스 이름을 이제 지어줘야 함.
         # 클래스이름에는 리소스라고 들어가야 다른사람들이 리소스를 상속받아
         # 쓰는거라고 이해 할 수 있음.
-api.add_resource( UserLoginResource  , '/user/login')
-api.add_resource( UserLogoutResource  , '/user/logout')
+api.add_resource( UserLoginResource  , '/user/login') # 로그인API
+api.add_resource( UserLogoutResource  , '/user/logout') # 로그아웃API
+api.add_resource(  RecipePublishResource , '/recipes/<int:recipe_id>/publish') 
+        # 레시피 공개API
+api.add_resource(  MyRecipeListResource  , '/recipes/me')
+        # 내 레시피 리스트만 가져오기
 
 
 

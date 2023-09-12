@@ -431,7 +431,7 @@ class RecipeRecource(Resource) : ## 특정레시피가져오기, 수정하기
 class RecipePublishResource(Resource) : ###### 레시피공개, 임시저장하는API
 
     @jwt_required()
-    def put(self, recipe_id): # recipe_id 는 경로
+    def put(self, recipe_id): # 레시피 공개 # recipe_id 는 경로
         
         ### 1. 클라이언트로부터 데이터 받아오기
         user_id = get_jwt_identity()   
@@ -465,7 +465,7 @@ class RecipePublishResource(Resource) : ###### 레시피공개, 임시저장하�
 
 
     @jwt_required()  # recipe_id이거 무조건 있어야 오류 안남. 레시피아이디쓰는 리소스니까
-    def delete(self, recipe_id):
+    def delete(self, recipe_id): # 레시피 다시 임시저장하기
 
 
         ### 1. 클라이언트로부터 데이터 받아오기
